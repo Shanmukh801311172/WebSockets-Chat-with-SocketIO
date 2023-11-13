@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <title>Websocket Chat App</title>
+   <style>
+      body {
+         font-family: Arial, sans-serif;
+         background-color: #f4f4f4;
+         margin: 0;
+         padding: 0;
+         display: flex;
+         justify-content: center;
+         align-items: center;
+         height: 100vh;
+      }
+
+      #chat-container {
+         width: 400px;
+         border: 1px solid #ccc;
+         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+         border-radius: 8px;
+         overflow: hidden;
+      }
+
+      #user-count {
+         padding: 10px;
+         background-color: #4caf50;
+         color: #fff;
+         text-align: center;
+      }
+
+      #user-id {
+         padding: 10px;
+         background-color: #2196F3;
+         color: #fff;
+         text-align: center;
+      }
+
+      #messages {
+         list-style-type: none;
+         padding: 10px;
+         margin: 0;
+         overflow-y: auto;
+         min-height: 40vh;
+         max-height: 40vh;
+         margin-bottom: 8px;
+      }
+
+      #form {
+         display: flex;
+         justify-content: space-between;
+         padding: 10px;
+         background-color: #eee;
+      }
+
+      #input {
+         flex: 1;
+         padding: 8px;
+         margin-right: 8px;
+      }
+
+      button {
+         padding: 8px;
+         cursor: pointer;
+         background-color: #4caf50;
+         color: #fff;
+         border: none;
+         border-radius: 4px;
+      }
+
+      .message {
+         margin-bottom: 8px;
+         padding: 10px 5px;
+         border-radius: 10px;
+         word-wrap: break-word;
+         background-color: #4caf50ad;
+         width: fit-content;
+      }
+
+      .message.you {
+         background-color: #2196f3a8;
+      }
+   </style>
+</head>
+
+<body>
+   <div id="chat-container">
+      <div id="user-count">Users online: 0</div>
+      <div id="user-id">ID: </div>
+      <ul id="messages"></ul>
+      <form id="form" action="">
+         <input id="input" autocomplete="off" placeholder="Type your message..." />
+         <button>Submit</button>
+      </form>
+   </div>
+   <script src="/socket.io/socket.io.js"></script>
+   <script>
+      var socket = io();
+
+      var messages = document.getElementById('messages');
+      var form = document.getElementById('form');
+      var input = document.getElementById('input');
+      var userCountDisplay = document.getElementById('user-count');
+      var userIdDisplay = document.getElementById('user-id');
+      var currentUserId;
+
+      form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (input.value.trim() !== '') {
+         socket.emit('chat message', input.value);
+         input.value = '';
+      }
+      });
+
+      socket.on('user count', function (count) {
+         userCountDisplay.textContent = 'Users Online: ' + count;
+      });
+
+      socket.on('user id', function (userId) {
+         userIdDisplay.textContent = 'Your ID: ' + userId;
+         currentUserId = userId;
+      });
+
+      socket.on('chat message', function (data) {
+         appendMessage(data.userId, data.message);
+         window.scrollTo(0, document.body.scrollHeight);
+      });
+
+      function appendMessage(userId, message) {
+         var item = document.createElement('li');
+         item.className = 'message' + (userId === currentUserId ? ' you' : '');
+         item.textContent = (userId === currentUserId) ? 'You: ' + message : 'User ' + userId + ': ' + message;
+         messages.appendChild(item);
+      }
+   </script>
+</body>
+
+</html>
